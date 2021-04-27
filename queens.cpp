@@ -7,17 +7,18 @@
 using namespace std;
 
 class queens{
+public :
   int n;
   vector<int> q; // q[i] represents column of queen present in row i, -1 if the row is empty (0-indexed)
   vector<set<int>> domain;
-  int last = 0;
   // for any i,j ;  |q[i]-q[j]| != |i-j|
   queens(int n){
     this->n = n;
     q.resize(n);
+    fill(q.begin(),q.end(),-1);
     domain.resize(n);
-    for(int i = 0; i< n ;i++){
-      for(int j = 1; j<=n ; j++){
+    for(int i = 0; i<n ;i++){
+      for(int j = 0; j<n ; j++){
         domain[i].insert(j);
       }
     }
@@ -29,18 +30,18 @@ class queens{
 
     for(int i=0; i<n; ++i){
       if(i!=row)
-      temp_constraints.insert( {i, val} );
+        temp_constraints.insert( {i, val} );
     }
 
     for(int i = 0 ; i<n; ++i){
       if( val - abs(row-i) >= 0 && val - abs(row-i) < n )
-      temp_constraints.insert( {i, val - abs(row-i)} );
+        temp_constraints.insert( {i, val - abs(row-i)} );
       if( val + abs(row-i) >= 0 && val + abs(row-i) < n )
-      temp_constraints.insert( {i, val + abs(row-i)} );
+        temp_constraints.insert( {i, val + abs(row-i)} );
     }
 
     for(pair <int, int> each: temp_constraints)
-    constraints.push_back(each);
+      constraints.push_back(each);
 
     return constraints;
   }
@@ -64,24 +65,24 @@ class queens{
     }
 
     if(!found)
-    return true;
+      return true;
 
     vector <pair<int,int>> potential_value_list;
     //find least constraining value
     for(int potential_value = 0; potential_value<n; ++potential_value){
-      if(!domain[row].count(potential_value))
-      continue;
+      if(domain[row].count(potential_value) == 0)
+        continue;
 
       int LCV_cur_value = n;
       vector<pair<int,int>> temp = get_constraints(row,potential_value);
       for(pair <int, int> & each: temp ){
         if(q[each.first] != -1)
-        continue;
+          continue;
 
-        if(domain[each.first].count(potential_value))
-        LCV_cur_value = min(LCV_cur_value, (int)domain[each.first].size()-1);
+        if(domain[each.first].count(potential_value) == 1)
+          LCV_cur_value = min(LCV_cur_value, (int)domain[each.first].size()-1);
         else
-        LCV_cur_value = min(LCV_cur_value, (int)domain[each.first].size());
+          LCV_cur_value = min(LCV_cur_value, (int)domain[each.first].size());
       }
 
       if(LCV_cur_value!=0){
@@ -98,24 +99,42 @@ class queens{
       //perform forward checking
       vector <int> modified;
       for(pair <int, int> & each: temp ){
-        if(domain[each.first].count(value)){
+        if(domain[each.first].count(value) == 1){
           domain[each.first].erase(value);
           modified.push_back(each.first);
         }
       }
 
-      if(!backtrack())
-      {
+      if(!backtrack()){
         //reverse the changes made
         q[row]= -1;
-        for(int & each: modified){
+        for(int & each: modified)
           domain[each].insert(value);
-        }
       }
       else
       return true;
     }
-
     return false;
   }
+
+  void print(){
+    cout << " The row-column pairs are as follows" << endl ;
+    for(int i = 0 ; i<n ; i++){
+      cout << '{' << i+1 << ',' << q[i]+1 << '}' << "  ";
+    }
+  }
 };
+
+int main(){
+  int n ;
+  cout << " Enter the value of n" << endl;
+  cin >> n;
+  queens nq(n);
+  if(nq.backtrack()){
+    nq.print();
+  }
+  else
+    cout << "can't generate the reqred arrangement";
+
+  return 0;
+}
