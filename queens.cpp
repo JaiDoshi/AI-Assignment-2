@@ -34,6 +34,8 @@ public :
     }
 
     for(int i = 0 ; i<n; ++i){
+      if(i == row)
+        continue;
       if( val - abs(row-i) >= 0 && val - abs(row-i) < n )
         temp_constraints.insert( {i, val - abs(row-i)} );
       if( val + abs(row-i) >= 0 && val + abs(row-i) < n )
@@ -75,14 +77,17 @@ public :
 
       int LCV_cur_value = n;
       vector<pair<int,int>> temp = get_constraints(row,potential_value);
+
+      vector<int> count(n,0);
+      for(pair <int, int> & each: temp )
+        if(domain[each.first].count(each.second) == 1)
+          count[each.first]++;
+
       for(pair <int, int> & each: temp ){
         if(q[each.first] != -1)
           continue;
 
-        if(domain[each.first].count(potential_value) == 1)
-          LCV_cur_value = min(LCV_cur_value, (int)domain[each.first].size()-1);
-        else
-          LCV_cur_value = min(LCV_cur_value, (int)domain[each.first].size());
+          LCV_cur_value = min(LCV_cur_value, (int)domain[each.first].size() - count[each.first]);
       }
 
       if(LCV_cur_value!=0){
@@ -97,19 +102,19 @@ public :
       q[row] = value;
       vector<pair<int,int>> temp = get_constraints(row,value);
       //perform forward checking
-      vector <int> modified;
+      vector<pair<int,int>> modified;
       for(pair <int, int> & each: temp ){
-        if(domain[each.first].count(value) == 1){
-          domain[each.first].erase(value);
-          modified.push_back(each.first);
+        if(domain[each.first].count(each.second) == 1){
+          domain[each.first].erase(each.second);
+          modified.push_back({each.first,each.second});
         }
       }
 
       if(!backtrack()){
         //reverse the changes made
         q[row]= -1;
-        for(int & each: modified)
-          domain[each].insert(value);
+        for(pair<int,int> & each: modified)
+          domain[each.first].insert(each.second);
       }
       else
       return true;
@@ -134,7 +139,7 @@ int main(){
     nq.print();
   }
   else
-    cout << "can't generate the reqred arrangement";
+    cout << "can't generate the required arrangement";
 
   return 0;
 }
